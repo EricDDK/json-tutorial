@@ -422,10 +422,15 @@ void lept_copy(lept_value* dst, const lept_value* src) {
             lept_set_string(dst, src->u.s.s, src->u.s.len);
             break;
         case LEPT_ARRAY:
-            /* \todo */
+			for (int i = 0; i < src->u.a.size; ++i) {
+				lept_copy(&dst->u.a.e[i], &src->u.a.e[i]);
+			}
             break;
         case LEPT_OBJECT:
-            /* \todo */
+			for (int i = 0; i < src->u.o.size; ++i) {
+				memcpy(dst->u.o.m[i].k, src->u.o.m[i].k, src->u.o.m[i].klen);
+				lept_copy(&dst->u.o.m[i], &src->u.o.m[i]);
+			}
             break;
         default:
             lept_free(dst);
@@ -499,8 +504,15 @@ int lept_is_equal(const lept_value* lhs, const lept_value* rhs) {
                     return 0;
             return 1;
         case LEPT_OBJECT:
-            /* \todo */
-            return 1;
+			if (lhs->u.o.size != rhs->u.o.size)
+				return 0;
+			for (i = 0; i < lhs->u.a.size; i++) {
+				lept_value* l1 = lept_find_object_value(lhs, lhs->u.o.m[i].k, lhs->u.o.m[i].klen);
+				lept_value* l2 = lept_find_object_value(rhs, lhs->u.o.m[i].k, lhs->u.o.m[i].klen);
+				if (!lept_is_equal(l1, l2))
+					return 0;
+			}
+			return 1;
         default:
             return 1;
     }
